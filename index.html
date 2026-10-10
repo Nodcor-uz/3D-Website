@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Norcor — цифровые продукты, которые меняют правила</title>
+  <meta name="description"
+    content="Norcor (Norcor.uz) — разработка high-end веб-сайтов, WebGL/3D-интерфейсов и AI-решений для бизнеса." />
+  <meta name="theme-color" content="#07070b" />
+
+  <!-- Шрифт Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+
+  <!-- Lenis: стили -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lenis@1.3.4/dist/lenis.css" />
+
+  <!-- Tailwind CSS v4 (Play CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      --color-ink: #07070b;
+      --color-ink-2: #0d0d14;
+      --color-violet: #8b7cff;
+      --color-cyan: #4de1ff;
+    }
+  </style>
+
+  <!-- GSAP + ScrollTrigger -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
+  <style>
+    html {
+      background: #07070b;
+    }
+
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      background:
+        radial-gradient(1200px 700px at 85% -10%, rgba(139, 124, 255, .16), transparent 60%),
+        radial-gradient(900px 600px at -10% 20%, rgba(77, 225, 255, .07), transparent 60%),
+        linear-gradient(180deg, #07070b 0%, #0b0b12 55%, #07070b 100%);
+      background-attachment: fixed;
+      color: #ecebf5;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: .05;
+      mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    }
+
+    ::selection {
+      background: rgba(139, 124, 255, .45);
+      color: #fff;
+    }
+
+    :focus-visible {
+      outline: 2px solid #4de1ff;
+      outline-offset: 3px;
+      border-radius: 8px;
+    }
+
+    .glass {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .10), rgba(255, 255, 255, .04));
+      backdrop-filter: blur(18px) saturate(140%);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 8px 30px rgba(0, 0, 0, .35);
+    }
+
+    .headline {
+      background: linear-gradient(180deg, #ffffff 15%, rgba(255, 255, 255, .55) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.04em;
+      line-height: .98;
+      padding-bottom: .08em;
+    }
+
+    .glow-card {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+    }
+
+    .glow-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(139, 124, 255, .20), transparent 62%);
+      opacity: 0;
+      transition: opacity .45s ease;
+    }
+
+    .glow-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      pointer-events: none;
+      background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgba(168, 158, 255, .9), transparent 65%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity .45s ease;
+    }
+
+    .glow-card:hover::before,
+    .glow-card:hover::after {
+      opacity: 1;
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+        filter: blur(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+        filter: none;
+      }
+    }
+
+    .rise {
+      opacity: 0;
+      animation: rise 1s cubic-bezier(.2, .7, .2, 1) forwards;
+    }
+
+    .rise-2 {
+      animation-delay: .12s;
+    }
+
+    .rise-3 {
+      animation-delay: .24s;
+    }
+
+    #webgl-container canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Элитный загрузочный экран с глубиной */
+    #loader {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      items-center;
+      justify-content: center;
+      background: radial-gradient(circle at center, rgba(20, 18, 35, 0.95) 0%, #07070b 100%);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.8s ease;
+    }
+
+    .loader-glow {
+      position: absolute;
+      width: 350px;
+      height: 350px;
+      background: radial-gradient(circle, rgba(139, 124, 255, 0.2) 0%, rgba(77, 225, 255, 0.05) 50%, transparent 70%);
+      filter: blur(40px);
+      pointer-events: none;
+      animation: pulseGlow 3s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulseGlow {
+      0% {
+        transform: scale(0.85);
+        opacity: 0.6;
+      }
+
+      100% {
+        transform: scale(1.15);
+        opacity: 1;
+      }
+    }
+
+    /* Кастомный курсор */
+    .cursor {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 9999;
+      width: 20px;
+      height: 20px;
+      margin: -10px 0 0 -10px;
+      border-radius: 50%;
+      background: #fff;
+      mix-blend-mode: difference;
+      pointer-events: none;
+      opacity: 0;
+      will-change: transform;
+      transition: opacity .3s ease, background-color .35s ease, box-shadow .35s ease, backdrop-filter .35s ease;
+    }
+
+    .cursor.is-visible {
+      opacity: 1;
+    }
+
+    .cursor.is-hover {
+      mix-blend-mode: normal;
+      background: rgba(139, 124, 255, .18);
+      box-shadow: inset 0 0 0 .5px rgba(255, 255, 255, .75), 0 0 30px rgba(139, 124, 255, .35);
+      -webkit-backdrop-filter: blur(2px);
+      backdrop-filter: blur(2px);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+
+      html.has-cursor,
+      html.has-cursor a,
+      html.has-cursor button {
+        cursor: none;
+      }
+    }
+
+    @media (hover: none),
+    (pointer: coarse) {
+      .cursor {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .rise {
+        animation: none;
+        opacity: 1;
+      }
+
+      .glow-card::before,
+      .glow-card::after {
+        transition: none;
+      }
+    }
+  </style>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+
+<body class="font-sans antialiased min-h-screen overflow-x-hidden">
+
+  <!-- ЭЛИТНЫЙ ЗАГРУЗОЧНЫЙ ЭКРАН С ГЛУБИНОЙ -->
+  <div id="loader" class="flex flex-col items-center justify-center">
+    <div class="loader-glow"></div>
+    <div
+      class="glass relative z-10 flex flex-col items-center p-8 rounded-3xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.7)] max-w-sm w-full mx-4 text-center">
+      <div class="flex items-center gap-3 mb-6">
+        <span
+          class="relative grid size-10 place-items-center rounded-full bg-gradient-to-br from-violet to-cyan shadow-[0_0_25px_rgba(139,124,255,0.6)]">
+          <span class="size-3.5 rounded-full bg-ink"></span>
+        </span>
+        <span class="text-3xl font-bold tracking-tight text-white">Norcor</span>
+      </div>
+
+      <!-- Процентный счетчик -->
+      <div id="loader-percent" class="text-4xl font-extrabold tracking-tighter text-white mb-3">0%</div>
+
+      <div class="w-full h-1.5 bg-white/10 rounded-full overflow-hidden mb-4 p-[1px] border border-white/5">
+        <div id="loader-progress"
+          class="h-full bg-gradient-to-r from-violet to-cyan w-0 rounded-full transition-all duration-75"></div>
+      </div>
+      <div id="loader-status" class="text-xs font-medium tracking-wider text-white/50 uppercase">Инициализация ядра...
+      </div>
+    </div>
+  </div>
+
+  <div class="cursor" id="cursor" aria-hidden="true"></div>
+
+  <!-- NAV -->
+  <header class="fixed inset-x-0 top-0 z-50 px-4">
+    <nav
+      class="mx-auto mt-4 flex max-w-6xl items-center justify-between gap-4 rounded-full border border-white/10 bg-black/30 px-4 py-2.5 pl-6 backdrop-blur-xl sm:mt-5"
+      aria-label="Основная навигация">
+      <a href="https://nodcor-uz.github.io/Website/" target="_blank"
+        class="flex items-center gap-2.5 text-[15px] font-semibold tracking-tight">
+        <span class="relative grid size-6 place-items-center rounded-full bg-gradient-to-br from-violet to-cyan">
+          <span class="size-2 rounded-full bg-ink"></span>
+        </span>
+        Norcor
+      </a>
+
+      <ul class="hidden items-center gap-6 text-sm text-white/60 md:flex">
+        <li><a class="transition-colors hover:text-white" href="#features" data-i18n="nav_services">Услуги</a></li>
+        <li><a class="transition-colors hover:text-white" href="#contact" data-i18n="nav_contacts">Контакты</a></li>
+        <li><a class="transition-colors hover:text-white" href="https://nodcor-uz.github.io/Website/" target="_blank"
+            data-i18n="nav_main">Основной сайт</a></li>
+      </ul>
+
+      <div class="flex items-center gap-3">
+        <!-- ПЕРЕКЛЮЧАТЕЛЬ ЯЗЫКОВ RU / UZ / EN -->
+        <div class="glass flex items-center rounded-full border border-white/15 p-1 text-xs font-semibold">
+          <button onclick="changeLang('ru')" id="btn-ru"
+            class="px-2.5 py-1 rounded-full bg-white/20 text-white transition">RU</button>
+          <button onclick="changeLang('uz')" id="btn-uz"
+            class="px-2.5 py-1 rounded-full text-white/60 hover:text-white transition">UZ</button>
+          <button onclick="changeLang('en')" id="btn-en"
+            class="px-2.5 py-1 rounded-full text-white/60 hover:text-white transition">EN</button>
+        </div>
+
+        <a href="https://t.me/Nodir01092011" target="_blank"
+          class="glass hidden sm:inline-block rounded-full border border-white/15 px-5 py-2 text-sm font-medium text-white transition hover:border-white/30 hover:bg-white/10"
+          data-i18n="nav_btn">
+          Написать в Telegram
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top" class="relative z-10">
+
+    <!-- HERO -->
+    <section id="hero" class="relative flex min-h-screen items-center overflow-hidden px-6 pt-28 pb-20">
+      <div id="webgl-container" class="pointer-events-none fixed inset-0 z-[1]" aria-hidden="true"></div>
+
+      <div
+        class="pointer-events-none absolute inset-0 z-10 bg-gradient-to-r from-ink via-ink/70 to-transparent md:via-ink/40">
+      </div>
+      <div class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-40 bg-gradient-to-t from-ink to-transparent">
+      </div>
+
+      <div class="relative z-10 mx-auto w-full max-w-6xl">
+        <p
+          class="rise glass mb-8 inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-1.5 text-[13px] text-white/70">
+          <span class="size-1.5 rounded-full bg-cyan shadow-[0_0_12px_2px_rgba(77,225,255,.8)]"></span>
+          <span data-i18n="hero_badge">IT-агентство · Norcor.uz</span>
+        </p>
+
+        <h1 class="headline rise rise-2 max-w-5xl text-[clamp(2.6rem,7.4vw,6.5rem)] font-semibold"
+          data-i18n="hero_title">
+          Цифровые продукты, которые меняют правила
+        </h1>
+
+        <p class="rise rise-3 mt-8 max-w-xl text-lg leading-relaxed text-white/55 sm:text-xl" data-i18n="hero_desc">
+          Разработка high-end веб-сайтов, WebGL/3D-интерфейсов и AI-решений для вашего бизнеса.
+        </p>
+
+        <div class="rise rise-3 mt-10 flex flex-wrap items-center gap-4">
+          <a href="https://t.me/Nodir01092011" target="_blank"
+            class="rounded-full bg-white px-7 py-3.5 text-[15px] font-semibold text-ink shadow-[0_0_40px_rgba(139,124,255,.35)] transition hover:shadow-[0_0_60px_rgba(139,124,255,.55)]"
+            data-i18n="hero_btn1">
+            Связаться в Telegram
+          </a>
+          <a href="tel:+998901776101"
+            class="glass rounded-full border border-white/15 px-7 py-3.5 text-[15px] font-medium text-white/90 transition hover:border-white/30">
+            +998 (90) 177-61-01
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section id="features" class="relative z-[2] px-6 py-28">
+      <div class="mx-auto max-w-6xl">
+        <div class="mb-14 max-w-2xl [text-shadow:0_2px_30px_rgb(7_7_11/0.9)]">
+          <h2 class="text-4xl font-semibold tracking-[-0.03em] text-white sm:text-5xl" data-i18n="services_title">Что мы
+            делаем</h2>
+          <p class="mt-5 text-lg text-white/60" data-i18n="services_subtitle">Четыре направления, в которых Norcor
+            сильнее всего.</p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-6">
+          <article
+            class="glow-card rounded-3xl border border-white/10 bg-ink/55 p-8 backdrop-blur-lg md:col-span-4 md:min-h-[340px]">
+            <span class="text-sm font-medium text-violet">01</span>
+            <h3 class="mt-4 text-2xl font-semibold tracking-tight" data-i18n="card1_title">WebGL &amp; 3D Web</h3>
+            <p class="mt-3 max-w-md text-white/50" data-i18n="card1_desc">Интерактивные сайты с Awwwards-эстетикой:
+              3D-сцены, плавный скролл и анимации, которые запоминаются.</p>
+          </article>
+
+          <article class="glow-card rounded-3xl border border-white/10 bg-ink/55 p-8 backdrop-blur-lg md:col-span-2">
+            <span class="text-sm font-medium text-cyan">02</span>
+            <h3 class="mt-4 text-2xl font-semibold tracking-tight" data-i18n="card2_title">AI Integration</h3>
+            <p class="mt-3 text-white/50" data-i18n="card2_desc">Внедрение нейросетей и автоматизация бизнес-процессов.
+            </p>
+          </article>
+
+          <article class="glow-card rounded-3xl border border-white/10 bg-ink/55 p-8 backdrop-blur-lg md:col-span-2">
+            <span class="text-sm font-medium text-violet">03</span>
+            <h3 class="mt-4 text-2xl font-semibold tracking-tight" data-i18n="card3_title">High-Load Systems</h3>
+            <p class="mt-3 text-white/50" data-i18n="card3_desc">Быстрые, надёжные и защищённые сервисы.</p>
+          </article>
+
+          <article id="developers"
+            class="glow-card rounded-3xl border border-white/10 bg-ink/55 p-8 backdrop-blur-lg md:col-span-4">
+            <span class="text-sm font-medium text-cyan">04</span>
+            <h3 class="mt-4 text-2xl font-semibold tracking-tight" data-i18n="card4_title">Mobile &amp; Custom Apps</h3>
+            <p class="mt-3 max-w-md text-white/50" data-i18n="card4_desc">Разработка мобильных и веб-приложений под
+              задачи вашего бизнеса.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA / CONTACTS -->
+    <section id="contact" class="relative z-[2] px-6 pb-32">
+      <div
+        class="glass relative mx-auto max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 px-8 py-20 text-center">
+        <h2 class="relative text-4xl font-semibold tracking-[-0.03em] sm:text-6xl" data-i18n="cta_title">Обсудим ваш
+          проект?</h2>
+        <p class="relative mx-auto mt-5 max-w-lg text-lg text-white/55" data-i18n="cta_desc">Свяжитесь с нами удобным
+          способом — ответим сразу.</p>
+
+        <div class="relative mt-10 flex flex-wrap items-center justify-center gap-4">
+          <a href="https://t.me/Nodir01092011" target="_blank"
+            class="rounded-full bg-white px-8 py-3.5 text-[15px] font-semibold text-ink transition hover:bg-white/90">
+            Telegram: @Nodir01092011
+          </a>
+          <a href="tel:+998901776101"
+            class="glass rounded-full border border-white/15 px-8 py-3.5 text-[15px] font-semibold text-white transition hover:border-white/30">
+            Тел: +998 (90) 177-61-01
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="relative z-10 border-t border-white/10 px-6 py-10">
+    <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 text-sm text-white/40 sm:flex-row">
+      <p data-i18n="footer_copy">© <span id="year"></span> Norcor. Все права защищены.</p>
+      <div class="flex items-center gap-6">
+        <a href="https://nodcor-uz.github.io/Website/" target="_blank" class="transition-colors hover:text-white"
+          data-i18n="nav_main">Norcor Website</a>
+        <a href="https://t.me/Nodir01092011" target="_blank" class="transition-colors hover:text-white">Telegram</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.4/dist/lenis.min.js"></script>
+
+  <script>
+    /* ============================================================
+       МУЛЬТИЯЗЫЧНОСТЬ (RU / UZ / EN)
+       ============================================================ */
+    const translations = {
+      ru: {
+        nav_services: "Услуги",
+        nav_contacts: "Контакты",
+        nav_main: "Основной сайт",
+        nav_btn: "Написать в Telegram",
+        hero_badge: "IT-агентство · Norcor.uz",
+        hero_title: "Цифровые продукты, которые меняют правила",
+        hero_desc: "Разработка high-end веб-сайтов, WebGL/3D-интерфейсов и AI-решений для вашего бизнеса.",
+        hero_btn1: "Связаться в Telegram",
+        services_title: "Что мы делаем",
+        services_subtitle: "Четыре направления, в которых Norcor сильнее всего.",
+        card1_title: "WebGL & 3D Web",
+        card1_desc: "Интерактивные сайты с Awwwards-эстетикой: 3D-сцены, плавный скролл и анимации, которые запоминаются.",
+        card2_title: "AI Integration",
+        card2_desc: "Внедрение нейросетей и автоматизация бизнес-процессов.",
+        card3_title: "High-Load Systems",
+        card3_desc: "Быстрые, надёжные и защищённые сервисы.",
+        card4_title: "Mobile & Custom Apps",
+        card4_desc: "Разработка мобильных и веб-приложений под задачи вашего бизнеса.",
+        cta_title: "Обсудим ваш проект?",
+        cta_desc: "Свяжитесь с нами удобным способом — ответим сразу.",
+        footer_copy: "© {year} Norcor. Все права защищены.",
+        status_1: "Инициализация ядра...",
+        status_2: "Загрузка 3D моделей...",
+        status_3: "Калибровка шейдеров...",
+        status_4: "Готово!"
+      },
+      uz: {
+        nav_services: "Xizmatlar",
+        nav_contacts: "Aloqa",
+        nav_main: "Asosiy sayt",
+        nav_btn: "Telegram'da yozish",
+        hero_badge: "IT-agentlik · Norcor.uz",
+        hero_title: "Qoidalarni o'zgartiruvchi raqamli mahsulotlar",
+        hero_desc: "Biznesingiz uchun high-end veb-saytlar, WebGL/3D interfeyslar va sun'iy intellekt yechimlarini yaratish.",
+        hero_btn1: "Telegram orqali bog'lanish",
+        services_title: "Biz nima qilamiz",
+        services_subtitle: "Norcor eng kuchli bo'lgan to'rtta yo'nalish.",
+        card1_title: "WebGL & 3D Web",
+        card1_desc: "Awwwards estetikasi bilan interaktiv saytlar: 3D sahnalar, silliq skroll va esda qolarli animatsiyalar.",
+        card2_title: "AI Integration",
+        card2_desc: "Neyrotarmoqlarni joriy etish va biznes jarayonlarini avtomatlashtirish.",
+        card3_title: "High-Load Systems",
+        card3_desc: "Tezkor, ishonchli va xavfsiz xizmatlar.",
+        card4_title: "Mobile & Custom Apps",
+        card4_desc: "Biznesingiz vazifalari uchun mobil va veb ilovalarni ishlab chiqish.",
+        cta_title: "Loyihangizni muhokama qilamizmi?",
+        cta_desc: "Biz bilan qulay usulda bog'laning — darhol javob beramiz.",
+        footer_copy: "© {year} Norcor. Barcha huquqlar himoyalangan.",
+        status_1: "Yadro ishga tushirilmoqda...",
+        status_2: "3D modellar yuklanmoqda...",
+        status_3: "Shaderlar sozlanmoqda...",
+        status_4: "Tayyor!"
+      },
+      en: {
+        nav_services: "Services",
+        nav_contacts: "Contacts",
+        nav_main: "Main Website",
+        nav_btn: "Write on Telegram",
+        hero_badge: "IT Agency · Norcor.uz",
+        hero_title: "Digital products that change the rules",
+        hero_desc: "High-end web development, WebGL/3D interfaces, and AI solutions for your business.",
+        hero_btn1: "Contact via Telegram",
+        services_title: "What we do",
+        services_subtitle: "Four core areas where Norcor excels.",
+        card1_title: "WebGL & 3D Web",
+        card1_desc: "Interactive sites with Awwwards aesthetics: 3D scenes, smooth scroll, and memorable animations.",
+        card2_title: "AI Integration",
+        card2_desc: "Neural network integration and business process automation.",
+        card3_title: "High-Load Systems",
+        card3_desc: "Fast, reliable, and secure services.",
+        card4_title: "Mobile & Custom Apps",
+        card4_desc: "Mobile and web app development tailored to your business needs.",
+        cta_title: "Let's discuss your project?",
+        cta_desc: "Get in touch with us in a convenient way — we'll reply right away.",
+        footer_copy: "© {year} Norcor. All rights reserved.",
+        status_1: "Initializing core...",
+        status_2: "Loading 3D assets...",
+        status_3: "Calibrating shaders...",
+        status_4: "Ready!"
+      }
+    };
+
+    let currentLang = "ru";
+
+    function changeLang(lang) {
+      currentLang = lang;
+
+      // Кнопки переключения
+      ['ru', 'uz', 'en'].forEach(l => {
+        const btn = document.getElementById(`btn-${l}`);
+        if (l === lang) {
+          btn.className = "px-2.5 py-1 rounded-full bg-white/20 text-white transition";
+        } else {
+          btn.className = "px-2.5 py-1 rounded-full text-white/60 hover:text-white transition";
+        }
+      });
+
+      // Перевод текстов
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (translations[lang][key]) {
+          if (key === 'footer_copy') {
+            const year = new Date().getFullYear();
+            el.innerHTML = translations[lang][key].replace('{year}', year);
+          } else {
+            el.textContent = translations[lang][key];
+          }
+        }
+      });
+    }
+
+    /* ============================================================
+       ЭЛИТНЫЙ ЗАГРУЗОЧНЫЙ ЭКРАН (от 2 до 4 секунд)
+       ============================================================ */
+    const loader = document.getElementById("loader");
+    const loaderProgress = document.getElementById("loader-progress");
+    const loaderPercent = document.getElementById("loader-percent");
+    const loaderStatus = document.getElementById("loader-status");
+
+    const targetLoadTime = Math.random() * 2000 + 2000;
+    const loadStart = performance.now();
+
+    function animateLoader(now) {
+      const elapsed = now - loadStart;
+      const progress = Math.min(elapsed / targetLoadTime, 1);
+      const percent = Math.floor(progress * 100);
+
+      if (loaderProgress) loaderProgress.style.width = `${percent}%`;
+      if (loaderPercent) loaderPercent.textContent = `${percent}%`;
+
+      if (loaderStatus) {
+        if (progress < 0.3) loaderStatus.textContent = translations[currentLang].status_1;
+        else if (progress < 0.65) loaderStatus.textContent = translations[currentLang].status_2;
+        else if (progress < 0.95) loaderStatus.textContent = translations[currentLang].status_3;
+        else loaderStatus.textContent = translations[currentLang].status_4;
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(animateLoader);
+      } else {
+        if (loader) {
+          loader.style.opacity = "0";
+          loader.style.transform = "scale(1.05)";
+          loader.style.filter = "blur(15px)";
+          setTimeout(() => {
+            loader.style.display = "none";
+            if (window.ScrollTrigger) ScrollTrigger.refresh();
+          }, 800);
+        }
+      }
+    }
+    requestAnimationFrame(animateLoader);
+  </script>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    const gsap = window.gsap;
+    const ScrollTrigger = window.ScrollTrigger;
+    gsap.registerPlugin(ScrollTrigger);
+
+    let lenis = null;
+    if (!reduceMotion && window.Lenis) {
+      lenis = new Lenis({
+        lerp: 0.09,
+        wheelMultiplier: 1,
+        smoothWheel: true,
+        anchors: true
+      });
+
+      lenis.on("scroll", ScrollTrigger.update);
+      gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+      gsap.ticker.lagSmoothing(0);
+    }
+
+    document.querySelectorAll(".glow-card").forEach((card) => {
+      card.addEventListener("pointermove", (e) => {
+        const r = card.getBoundingClientRect();
+        card.style.setProperty("--mx", `${e.clientX - r.left}px`);
+        card.style.setProperty("--my", `${e.clientY - r.top}px`);
+      });
+    });
+
+    /* CUSTOM CURSOR */
+    const cursor = document.getElementById("cursor");
+    const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+    if (cursor && finePointer) {
+      document.documentElement.classList.add("has-cursor");
+
+      const HOVER_SELECTOR = "a, button, [role='button']";
+      const pos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+      const target = { x: pos.x, y: pos.y };
+      let scale = 1, scaleTarget = 1;
+      let isHover = false, isDown = false;
+
+      const updateScaleTarget = () => {
+        scaleTarget = (isHover ? 3.4 : 1) * (isDown ? 0.8 : 1);
+      };
+
+      window.addEventListener("pointermove", (e) => {
+        target.x = e.clientX;
+        target.y = e.clientY;
+        cursor.classList.add("is-visible");
+      }, { passive: true });
+
+      document.addEventListener("pointerover", (e) => {
+        const hovering = !!e.target.closest(HOVER_SELECTOR);
+        if (hovering === isHover) return;
+        isHover = hovering;
+        cursor.classList.toggle("is-hover", isHover);
+        updateScaleTarget();
+      });
+
+      window.addEventListener("pointerdown", () => { isDown = true; updateScaleTarget(); });
+      window.addEventListener("pointerup", () => { isDown = false; updateScaleTarget(); });
+
+      document.documentElement.addEventListener("pointerleave", () => cursor.classList.remove("is-visible"));
+      document.documentElement.addEventListener("pointerenter", () => cursor.classList.add("is-visible"));
+
+      const lerp = (a, b, k, dt) => a + (b - a) * (1 - Math.pow(1 - k, dt));
+
+      gsap.ticker.add((_, deltaTime) => {
+        const dt = Math.min(deltaTime / 16.667, 3);
+        const posK = reduceMotion ? 1 : 0.16;
+        const scaleK = reduceMotion ? 1 : 0.14;
+
+        pos.x = lerp(pos.x, target.x, posK, dt);
+        pos.y = lerp(pos.y, target.y, posK, dt);
+        scale = lerp(scale, scaleTarget, scaleK, dt);
+
+        cursor.style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0) scale(${scale})`;
+      });
+    }
+
+    /* THREE.JS */
+    const container = document.getElementById("webgl-container");
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 0);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+    camera.position.set(0, 0, 6.5);
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+    scene.add(ambientLight);
+
+    const violetLight = new THREE.DirectionalLight(0x8b7cff, 4);
+    violetLight.position.set(-4, 3, 5);
+    scene.add(violetLight);
+
+    const cyanLight = new THREE.PointLight(0x4de1ff, 140, 0, 2);
+    cyanLight.position.set(4, -2.5, 4);
+    scene.add(cyanLight);
+
+    const uniforms = {
+      uTime: { value: 0 },
+      uMouse: { value: new THREE.Vector2(0, 0) },
+      uPx: { value: renderer.getPixelRatio() },
+      uOpacity: { value: 1 }
+    };
+
+    const pointsMaterial = new THREE.ShaderMaterial({
+      uniforms,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      vertexShader: /* glsl */`
+        uniform float uTime;
+        uniform vec2 uMouse;
+        uniform float uPx;
+        varying float vMix;
+        varying float vDepth;
+        void main() {
+          vec3 p = position;
+          float wave = sin(p.x * 2.6 + uTime * 0.8) * cos(p.y * 2.9 + uTime * 0.6) * sin(p.z * 2.4 + uTime * 0.7);
+          p += normalize(position) * wave * 0.22;
+          p.xy += uMouse * 0.12 * (1.0 - smoothstep(0.0, 2.2, length(p.xy - uMouse * 2.0)));
+          vMix = wave * 0.5 + 0.5;
+          vec4 mv = modelViewMatrix * vec4(p, 1.0);
+          vDepth = clamp(1.0 - (-mv.z - 4.5) / 4.0, 0.15, 1.0);
+          gl_PointSize = (2.2 + vMix * 1.8) * uPx * (6.0 / -mv.z);
+          gl_Position = projectionMatrix * mv;
+        }
+      `,
+      fragmentShader: /* glsl */`
+        uniform float uOpacity;
+        varying float vMix;
+        varying float vDepth;
+        void main() {
+          vec2 uv = gl_PointCoord - 0.5;
+          float d = length(uv);
+          if (d > 0.5) discard;
+          float a = smoothstep(0.5, 0.0, d);
+          vec3 violet = vec3(0.545, 0.486, 1.0);
+          vec3 cyan = vec3(0.302, 0.882, 1.0);
+          gl_FragColor = vec4(mix(violet, cyan, vMix), a * vDepth * 0.9 * uOpacity);
+        }
+      `
+    });
+
+    const points = new THREE.Points(new THREE.SphereGeometry(1.7, 150, 150), pointsMaterial);
+    points.visible = false;
+    group.add(points);
+
+    const SHELL_BASE_OPACITY = 0.09;
+    const shell = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(2.25, 2),
+      new THREE.MeshBasicMaterial({ color: 0x8b7cff, wireframe: true, transparent: true, opacity: SHELL_BASE_OPACITY })
+    );
+    shell.visible = false;
+    group.add(shell);
+
+    const MODEL_URL = "model.glb";
+    const MODEL_TARGET_SIZE = 3.6;
+
+    const showFallback = () => {
+      points.visible = true;
+      shell.visible = true;
+    };
+
+    new GLTFLoader().load(
+      MODEL_URL,
+      (gltf) => {
+        const model = gltf.scene;
+        const box = new THREE.Box3().setFromObject(model);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        model.position.sub(center);
+
+        const pivot = new THREE.Group();
+        pivot.add(model);
+        const maxDim = Math.max(size.x, size.y, size.z) || 1;
+        pivot.scale.setScalar(MODEL_TARGET_SIZE / maxDim);
+
+        group.add(pivot);
+      },
+      undefined,
+      (err) => {
+        console.warn("[Norcor] Не удалось загрузить model.glb, показываю запасной 3D-объект.", err);
+        showFallback();
+      }
+    );
+
+    function resize() {
+      const w = container.clientWidth || 1;
+      const h = container.clientHeight || 1;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.position.z = w < 768 ? 8.5 : 6.5;
+      camera.updateProjectionMatrix();
+    }
+    new ResizeObserver(resize).observe(container);
+    resize();
+
+    const mouse = new THREE.Vector2(0, 0);
+    const mouseTarget = new THREE.Vector2(0, 0);
+    window.addEventListener("pointermove", (e) => {
+      mouseTarget.set((e.clientX / window.innerWidth) * 2 - 1, -((e.clientY / window.innerHeight) * 2 - 1));
+    }, { passive: true });
+
+    const startX = () => (window.innerWidth < 768 ? 0 : 1.5);
+    const state = { x: startX(), y: 0, scale: 1, rotX: 0, opacity: 1 };
+    const scrub = reduceMotion ? true : 1;
+
+    gsap.fromTo(state,
+      { x: startX, scale: 1, rotX: 0 },
+      {
+        x: 0,
+        scale: 1.6,
+        rotX: 1.5,
+        ease: "none",
+        scrollTrigger: {
+          trigger: "#hero",
+          start: "top top",
+          endTrigger: "#features",
+          end: "top top",
+          scrub,
+          invalidateOnRefresh: true
+        }
+      }
+    );
+
+    gsap.fromTo(state,
+      { y: 0, scale: 1.6, opacity: 1 },
+      {
+        y: -1.8,
+        scale: 0.8,
+        opacity: 0.3,
+        ease: "none",
+        immediateRender: false,
+        scrollTrigger: {
+          trigger: "#features",
+          start: "center center",
+          end: () => {
+            const contactTop = document.getElementById("contact").getBoundingClientRect().top + window.scrollY;
+            return Math.min(ScrollTrigger.maxScroll(window), contactTop - window.innerHeight * 0.2);
+          },
+          scrub,
+          invalidateOnRefresh: true
+        }
+      }
+    );
+
+    ScrollTrigger.refresh();
+    ScrollTrigger.update();
+    window.addEventListener("load", () => {
+      ScrollTrigger.refresh();
+      ScrollTrigger.update();
+    });
+
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const t = clock.getElapsedTime();
+      const lt = reduceMotion ? 0 : t;
+      uniforms.uTime.value = lt;
+
+      mouse.lerp(mouseTarget, 0.05);
+      uniforms.uMouse.value.copy(mouse);
+
+      group.position.set(state.x, state.y, 0);
+      group.scale.setScalar(state.scale);
+      group.rotation.x = state.rotX + mouse.y * 0.15;
+      group.rotation.y = t * 0.08 + mouse.x * 0.25;
+      shell.rotation.y = -t * 0.05;
+
+      violetLight.position.set(-4 + Math.sin(lt * 0.35) * 1.5, 3 + Math.cos(lt * 0.28) * 1.0, 5);
+      cyanLight.position.set(4 + Math.cos(lt * 0.30) * 1.5, -2.5 + Math.sin(lt * 0.40) * 1.0, 4);
+
+      uniforms.uOpacity.value = state.opacity;
+      shell.material.opacity = SHELL_BASE_OPACITY * state.opacity;
+
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+
+</html>
